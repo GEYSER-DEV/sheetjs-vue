@@ -59,9 +59,24 @@
         <v-col cols="12">
           <div v-if="jsonData.length > 0">
             <h2>Datos del Archivo Excel:</h2>
+
+            <table>
+            <thead><tr><th>ID Pregunta</th><th>ID Categoria</th></tr></thead>
+            <!-- The `tbody` section includes the data rows -->
+            <tbody>
+              <!-- generate row (TR) for each president -->
+              <tr v-for="(row, index) in filteredData" :key="index">
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+
+
             <ul>
-              <li v-for="(row, index) in jsonData" :key="index">
-                {{ row }}
+              <li v-for="(row, index) in filteredData" :key="index">
+                {{ row[0] }}
               </li>
             </ul>
           </div>
@@ -93,14 +108,14 @@ export default {
   computed: {
     filteredData() {
       // Filtra las filas vacías antes de mostrarlas
+
       return this.jsonData.filter(row => row.length > 0);
+      
     }
   },
   methods: {
     handleFileChange(event) {
-      console.log("Archivo entrada:", event);
       let file = event;
-      console.log("Archivo: ",file);
       if (file) {
         this.readFile(file);
       }
@@ -110,15 +125,16 @@ export default {
 
       reader.onload = (e) => {
         let data = new Uint8Array(e.target.result);
-        console.log("Evento e: ", data);
         let workbook = read(data,{ type: 'array' });
-        console.log("woorbok: ", workbook);
-
         let sheetName = workbook.SheetNames[0];
         let sheet = workbook.Sheets[sheetName];
-        this.jsonData = utils.sheet_to_json(sheet, { header: 1 });
+        let jsonData = utils.sheet_to_json(sheet, { header: 1 });
 
-        console.log(this.jsonData);
+        
+
+        this.jsonData = jsonData.filter(row => row.length > 0);
+
+        console.log("DATA: ",this.jsonData);
       };
 
       reader.readAsArrayBuffer(file);
