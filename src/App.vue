@@ -57,7 +57,19 @@
         </v-col>
 
         <v-col cols="12">
+
           <div v-if="jsonData.length > 0">
+
+
+            <v-data-table
+              :headers="headers"
+              :items="transformData(filteredData)"
+              :items-per-page="10"
+              class="elevation-1"
+            >
+            </v-data-table>
+
+
             <h2>Datos del Archivo Excel:</h2>
 
             <table>
@@ -94,7 +106,8 @@ import { read, utils } from 'xlsx';
 export default {
   name: 'App',
   data: () => ({
-      jsonData: []
+      jsonData: [],
+      headers: [],
   }),
   mounted() {
     // Ejemplo de cómo usar SheetJS para leer un archivo Excel
@@ -106,11 +119,13 @@ export default {
     console.log(data); */
   },
   computed: {
+   /* headers() {
+      // Crea encabezados basados en la primera fila del archivo
+      return this.jsonData[0];
+    },*/
     filteredData() {
-      // Filtra las filas vacías antes de mostrarlas
-
-      return this.jsonData.filter(row => row.length > 0);
-      
+      // Filtra la primera fila y las filas que no tienen un número en la primera columna
+      return this.jsonData.slice(1);
     }
   },
   methods: {
@@ -119,6 +134,16 @@ export default {
       if (file) {
         this.readFile(file);
       }
+    },
+    transformData(data) {
+        // Transforma cada arreglo en un objeto con propiedades numéricas
+        return data.map(row => {
+            const obj = {};
+            this.headers.forEach((header, index) => {
+            obj[header] = row[index];
+            });
+            return obj;
+        });
     },
     readFile(file) {
       let reader = new FileReader();
@@ -135,6 +160,7 @@ export default {
         this.jsonData = jsonData.filter(row => row.length > 0);
 
         console.log("DATA: ",this.jsonData);
+        console.log("HEADERS: ",this.jsonData[0]);
       };
 
       reader.readAsArrayBuffer(file);
